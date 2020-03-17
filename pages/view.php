@@ -13,9 +13,8 @@
 	// setcookie('aref', 'yes', time()+(2147483647), '/');
 	// echo $_COOKIE['aref'];
 
-	
 
-	$name   = 'user1';
+	$name   = 'why_ffg?';
 	if (isset($_POST['exit'])) {
 		if (isset($_COOKIE[$name])) {
 			// echo "string";
@@ -25,18 +24,33 @@
 	}
 	if (!isset($_COOKIE[$name])) {
 		// echo "first time";
-		$number = 1;
+		mysqli_query($db, "INSERT INTO users (number) VALUES (1)");
+		$query = mysqli_query($db, "SELECT * FROM users ORDER BY id DESC LIMIT 1");
+		if ($query) {
+			$row = $query->fetch_assoc();
+			$id  = $row['id'];
+		}
+		// echo $id;
+		$number = encrypt(strval($id), $key);
 		setcookie($name, $number, time()+$time, '/');
-		mysqli_query($db, "INSERT INTO users (number) VALUES ($number)");
 		$_COOKIE[$name] = $number;
 		// echo intval($_COOKIE[$name]);
 		// setcookie('user', $number, time()+(600), '/');
 	} else {
 		// echo "string";
-		$counter = $_COOKIE[$name];
-		$counter += 1;
-		setcookie($name, $counter, time()+$time, '/');
-		$_COOKIE[$name] = $counter;
+		$id    = intval(decrypt($_COOKIE[$name], $key));
+		// echo $id;
+		$query = mysqli_query($db, "SELECT * FROM users WHERE id='$id'");
+		if ($query) {
+			$row    = $query->fetch_assoc();
+			$number = $row['number'];
+			$number += 1;
+			// echo $number;
+			mysqli_query($db, "UPDATE users SET number='$number' WHERE id='$id'");
+		}
+		// $counter += 1;
+		// setcookie($name, $counter, time()+$time, '/');
+		// $_COOKIE[$name] = $counter;
 		// $n = $counter + 1;
 		// echo $counter;
 		// echo $_COOKIE['user'];
@@ -49,14 +63,26 @@
 </head>
 <body>
 	<?php
-		$g= $_COOKIE[$name];
+		// $g= $_COOKIE[$name];
 		// echo count($_COOKIE);
-		echo "<h1>$g</h1>
-		<br>
-		<form action=","./view.php"," method=","post",">
+		// echo "<h1>$g</h1>
+		// <br>
+		// <form action=","./view.php"," method=","post",">
+		// 	<input type=","submit"," name=","exit"," value=","exit",">
+		// 	<input type=","submit"," name=","refresh"," value=","refresh",">
+		// </form>";
+		$id    = intval(decrypt($_COOKIE[$name], $key));
+		$query = mysqli_query($db, "SELECT * FROM users WHERE id='$id'");
+		if ($query) {
+			$row    = $query->fetch_assoc();
+			$number = $row['number'];
+			echo "<h1>$number</h1>
+			<br>
+			<form action=","./view.php"," method=","post",">
 			<input type=","submit"," name=","exit"," value=","exit",">
 			<input type=","submit"," name=","refresh"," value=","refresh",">
-		</form>";
+			</form>";
+		}
 	?>
 </body>
 </html>
